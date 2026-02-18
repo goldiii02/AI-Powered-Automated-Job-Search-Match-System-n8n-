@@ -1,0 +1,872 @@
+{
+  "name": "AI-Powered Indian Job Search and Auto-Apply Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Job Search Profile Setup",
+        "formDescription": "Please provide your details to start automated job search and applications",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "fieldName": "fullName",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email Address",
+              "fieldType": "email",
+              "fieldName": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone Number",
+              "fieldName": "phone",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Desired Job Role(s)",
+              "fieldName": "jobRoles",
+              "placeholder": "e.g., Software Engineer, Data Analyst",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Preferred Location(s)",
+              "fieldName": "locations",
+              "placeholder": "e.g., Bangalore, Mumbai, Remote",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Years of Experience",
+              "fieldType": "number",
+              "fieldName": "experience",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Key Skills (comma separated)",
+              "fieldName": "skills",
+              "placeholder": "e.g., Python, JavaScript, SQL",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Resume Upload (PDF/DOC)",
+              "fieldType": "file",
+              "fieldName": "resume",
+              "multipleFiles": false,
+              "acceptFileTypes": "application/pdf,.doc,.docx",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Portfolio / GitHub / LinkedIn (optional)",
+              "fieldName": "portfolio"
+            },
+            {
+              "fieldLabel": "Expected Salary (optional)",
+              "fieldName": "expectedSalary"
+            },
+            {
+              "fieldLabel": "Job Type Preference",
+              "fieldType": "dropdown",
+              "fieldName": "jobType",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Remote"
+                  },
+                  {
+                    "option": "Onsite"
+                  },
+                  {
+                    "option": "Hybrid"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Profile saved! Your automated job search will begin on the next scheduled run."
+            }
+          }
+        }
+      },
+      "id": "8d51167e-3d87-4eea-94a9-47297ea628ae",
+      "name": "User Profile Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        96,
+        272
+      ],
+      "webhookId": "9265bf1f-9bba-44f4-95b1-2251fc2ed105"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "c3ab1b17-4ce8-4047-8d37-e260cfd11057",
+      "name": "Daily Job Search Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "emailValid",
+              "value": "={{ /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test($json.email) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "id-2",
+              "name": "resumeExists",
+              "value": "={{ $json.resume !== undefined && $json.resume !== null && $json.resume !== '' }}",
+              "type": "boolean"
+            },
+            {
+              "id": "id-3",
+              "name": "skillsNotEmpty",
+              "value": "={{ $json.skills !== undefined && $json.skills !== null && $json.skills.trim() !== '' }}",
+              "type": "boolean"
+            },
+            {
+              "id": "id-4",
+              "name": "jobRolesNotEmpty",
+              "value": "={{ $json.jobRoles !== undefined && $json.jobRoles !== null && $json.jobRoles.trim() !== '' }}",
+              "type": "boolean"
+            },
+            {
+              "id": "id-5",
+              "name": "allValid",
+              "value": "={{ !!(\n  /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test($json.email) &&\n  $json.resume !== undefined &&\n  $json.resume !== null &&\n  $json.resume !== '' &&\n  $json.skills !== undefined &&\n  $json.skills !== null &&\n  $json.skills.trim() !== '' &&\n  $json.jobRoles !== undefined &&\n  $json.jobRoles !== null &&\n  $json.jobRoles.trim() !== ''\n) }}\n",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "id": "3a3a08b7-3bf7-4e9c-a6cc-38df7f522aa5",
+      "name": "Validate User Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $('Validate User Input').item.json.allValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "949378b8-28ea-4070-abef-8f7c837d21c2",
+      "name": "Check Input Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "XcI3SuzQlDpEJT5f",
+          "mode": "list",
+          "cachedResultName": "ai_automation",
+          "cachedResultUrl": "/projects/1XwUZdYEMZU3VzX2/datatables/XcI3SuzQlDpEJT5f"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.email }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fullName",
+              "displayName": "fullName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "jobRoles",
+              "displayName": "jobRoles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "locations",
+              "displayName": "locations",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "experience",
+              "displayName": "experience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "skills",
+              "displayName": "skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "portfolio",
+              "displayName": "portfolio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expectedSalary",
+              "displayName": "expectedSalary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "jobType",
+              "displayName": "jobType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0a4fb17c-f5ff-46c1-9c41-2351af866c86",
+      "name": "Store User Profile",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "fullName",
+              "value": "={{ $('User Profile Form').item.json.fullName }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "email",
+              "value": "={{ $('User Profile Form').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "phone",
+              "value": "={{ $('User Profile Form').item.json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "jobRoles",
+              "value": "={{ $('User Profile Form').item.json.jobRoles }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "locations",
+              "value": "={{ $json.locations || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "experience",
+              "value": "={{ $json.experience || 0 }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "skills",
+              "value": "={{ $json.skills || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "portfolio",
+              "value": "={{ $json.portfolio || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-9",
+              "name": "expectedSalary",
+              "value": "={{ $json.expectedSalary || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-10",
+              "name": "jobType",
+              "value": "={{ $json.jobType || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-11",
+              "name": "createdAt",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1f727430-26cd-4e8a-945d-238367082d02",
+      "name": "Prepare Profile Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "XcI3SuzQlDpEJT5f",
+          "mode": "list",
+          "cachedResultName": "ai_automation",
+          "cachedResultUrl": "/projects/1XwUZdYEMZU3VzX2/datatables/XcI3SuzQlDpEJT5f"
+        },
+        "returnAll": true
+      },
+      "id": "a2f4e4a5-227a-47d9-b567-73da83f75724",
+      "name": "Get User Profile",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.arbeitnow.com/api/job-board-api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "search",
+              "value": "={{ $json.skills.split(',')[0].trim() }}"
+            },
+            {
+              "name": "location",
+              "value": "India"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "0c0b8bcf-cb98-4447-aaf2-451f1dcf0b80",
+      "name": "Fetch Arbeitnow Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.naukri.com/jobapi/v3/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "keywords",
+              "value": "={{ $('Get User Profile').item.json.jobRoles.split(',')[0].trim() }}"
+            },
+            {
+              "name": "location",
+              "value": "={{ $('Get User Profile').item.json.locations.split(',')[0].trim() }}"
+            },
+            {
+              "name": "experience",
+              "value": "={{ $('Get User Profile').item.json.experience }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "5a122f58-1097-486b-a8eb-89527a2c6bf3",
+      "name": "Fetch Naukri Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "keywords",
+              "value": "={{ $json.jobRoles.split(',')[0].trim() }}"
+            },
+            {
+              "name": "location",
+              "value": "India"
+            },
+            {
+              "name": "f_TPR",
+              "value": "r604800"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "c366a0d9-30a6-49d0-b0b2-a68d968b5828",
+      "name": "Fetch LinkedIn Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "4eee2884-ed2e-4013-bbbb-cab059b6221e",
+      "name": "Combine All Jobs",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        768,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "jobId",
+              "value": "={{ $json.id || $json.jobId || $json.job_id || String(Date.now()) + Math.random() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "jobTitle",
+              "value": "={{ $json.title || $json.job_title || $json.jobTitle || 'Unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "company",
+              "value": "={{ $json.company || $json.company_name || $json.companyName || 'Unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "location",
+              "value": "={{ $json.location || $json.job_location || $json.jobLocation || 'India' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "jobUrl",
+              "value": "={{ $json.url || $json.job_url || $json.link || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "description",
+              "value": "={{ ($json.description || '').slice(0, 800) }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "source",
+              "value": "={{ $('Fetch Arbeitnow Jobs').item ? 'Arbeitnow' : ($('Fetch Naukri Jobs').item ? 'Naukri' : 'LinkedIn') }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "postedDate",
+              "value": "={{ $json.created_at || $json.posted_date || $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c010e855-e76e-4334-a964-b6cb7f81e3f2",
+      "name": "Normalize Job Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1216,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "jobId, jobTitle, company",
+        "options": {}
+      },
+      "id": "ef30e811-6c34-4563-bd16-6c917b018556",
+      "name": "Remove Duplicate Jobs",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        992,
+        784
+      ],
+      "id": "aceec8fa-72fc-470a-987c-99d90c00ca19",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get User Profile').item.json.email }}",
+        "subject": "=🚀 AI-Powered Job Match Report for {{ $now.format('yyyy-MM-dd') }}",
+        "message": "=<h2>🚀 Your AI-Matched Job Opportunities</h2>\n\n<p>Hello {{ $('Get User Profile').item.json.fullName || 'there' }},</p>\n\n<p>Here are your top AI-matched jobs for today:</p>\n\n<hr>\n\n{{ ($json.data || []).map((item, index) => `\n  <div style=\"margin-bottom:20px;padding:12px;border:1px solid #eee;border-radius:8px;\">\n    <h3 style=\"margin:0;color:#2b6cb0;\">\n      ${index + 1}. ${item.jobTitle || 'Unknown Role'}\n    </h3>\n    <p style=\"margin:4px 0;\"><strong>Company:</strong> ${item.company || 'Unknown'}</p>\n    <p style=\"margin:4px 0;\"><strong>Location:</strong> ${item.location || 'Not specified'}</p>\n    <p style=\"margin:4px 0;\">\n      <a href=\"${item.jobUrl}\" target=\"_blank\">🔗 View Job</a>\n    </p>\n  </div>\n`).join('') }}\n\n<hr>\n\n<p style=\"color:#666;font-size:13px;\">\nThis email was generated automatically by your AI Job Agent 🤖\n</p>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1856,
+        784
+      ],
+      "id": "e052ea72-dfff-4740-a108-7bb70ed30a86",
+      "name": "Send a message",
+      "webhookId": "6d8addbe-51f5-461f-ac1d-b36dda7d0489",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PrjiDhkfk35OgW32",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        784
+      ],
+      "id": "f278d7f7-87be-4b71-998a-8ac0900d357f",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "User Profile Form": {
+      "main": [
+        [
+          {
+            "node": "Validate User Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate User Input": {
+      "main": [
+        [
+          {
+            "node": "Check Input Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Input Valid": {
+      "main": [
+        [
+          {
+            "node": "Prepare Profile Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Profile Data": {
+      "main": [
+        [
+          {
+            "node": "Store User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Job Search Schedule": {
+      "main": [
+        [
+          {
+            "node": "Get User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Profile": {
+      "main": [
+        [
+          {
+            "node": "Fetch Arbeitnow Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Arbeitnow Jobs": {
+      "main": [
+        [
+          {
+            "node": "Combine All Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Naukri Jobs": {
+      "main": [
+        []
+      ]
+    },
+    "Fetch LinkedIn Jobs": {
+      "main": [
+        []
+      ]
+    },
+    "Combine All Jobs": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Job Data": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicate Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicate Jobs": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Normalize Job Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store User Profile": {
+      "main": [
+        [
+          {
+            "node": "Get User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "18fba706-7e0c-41bc-b766-591bb1f63af7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0eabc66584c59be3f276dfc5f451f104d1bd5cd3fb6bbc39b21957da0a16d9d9"
+  },
+  "id": "Fs98FvDGNHPRvQYF",
+  "tags": []
+}
